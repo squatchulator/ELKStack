@@ -2,7 +2,7 @@
 
 # Read user inputs for the node name and for the password 
 read -p "What would you like the name for this node to be? " node
-read -p "What would you like the password for 'elastic' to be? " password
+#read -p "What would you like the password for 'elastic' to be? " password
 
 sudo apt update
 sudo apt upgrade -y
@@ -45,22 +45,24 @@ sudo systemctl start elasticsearch
 
 # Wait for Elasticsearch to start
 clear
-echo "Starting elasticsearch, please wait..."\n
+echo "Starting elasticsearch, please wait..."
 sleep 10
 
 # Install Kibana
-#sudo apt install kibana
-#sudo sed -i 's/#server.port: 5601/server.port: 5601/' /etc/kibana/kibana.yml
-#sudo sed -i 's/#server.host: "localhost"/server.host: $ipaddress/I' /etc/kibana.kibana.yml
+sudo apt install kibana
 
 # Generate the enrollment token 
-#token=$(sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana)
+token=$(sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana)
+
 # Edit the Kibana configuration file 
-#sudo sed -i "s/# elasticsearch.serviceAccountToken: #\"my_token\"/elasticsearch.serviceAccountToken: \$token\/" /etc/kibana/kibana.yml
+sudo sed -i 's/#server.port: 5601/server.port: 5601/' /etc/kibana/kibana.yml
+sudo sed -i 's/#server.host: "localhost"/server.host: '"$ipaddress"'/' /etc/kibana/kibana.yml
+sudo sed -i 's/# elasticsearch.serviceAccountToken: "my_token"/elasticsearch.serviceAccountToken: '"$token"'/' /etc/kibana/kibana.yml
 
 # Start kibana
-#sudo systemctl enable kibana
-#sudo systemctl start kibana
+sudo systemctl enable kibana
+sudo systemctl start kibana
+sudo systemctl restart elastic
 clear
-echo "Elasticsearch setup completed."
-echo "Your password for the user 'elastic' is $password. Please change this ASAP."
+echo "Elasticsearch setup completed!"
+echo "You can view your Kibana dashboard at https://$ipaddress:5601."

@@ -30,24 +30,23 @@ sudo apt update
 # Install Elasticsearch
 sudo apt install elasticsearch -y
 
+# Change the default password
+#sudo echo -e "y\n$password\n$password" | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "https://$ipaddress:9200"
+
 # Configure Elasticsearch
 sudo sed -i "s/#node.name: node-1/node.name: $node/I" /etc/elasticsearch/elasticsearch.yml
 sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddress"'/' /etc/elasticsearch/elasticsearch.yml
 sudo sed -i 's/#http.port: 9200/http.port: 9200/' /etc/elasticsearch/elasticsearch.yml
+sudo sed -i 's/xpack.security.enabled: true/xpack.security.enabled: false/' /etc/elasticsearch/elasticsearch.yml
 
 # Enable and start Elasticsearch service
 sudo systemctl enable elasticsearch
 sudo systemctl start elasticsearch
 
 # Wait for Elasticsearch to start
-cls
-echo "Starting elasticsearch, please wait...\n"
+clear
+echo "Starting elasticsearch, please wait..."\n
 sleep 10
-
-
-
-# Change the default password
-sudo echo -e "y\n$password\n$password" | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "https://$ipaddress:9200"
 
 # Install Kibana
 #sudo apt install kibana
@@ -62,9 +61,6 @@ sudo echo -e "y\n$password\n$password" | sudo /usr/share/elasticsearch/bin/elast
 # Start kibana
 #sudo systemctl enable kibana
 #sudo systemctl start kibana
-
-# Test Elasticsearch
-curl -X GET "http://$ipaddress:9200/"
-
+clear
 echo "Elasticsearch setup completed."
 echo "Your password for the user 'elastic' is $password. Please change this ASAP."

@@ -12,16 +12,17 @@ sudo apt install openjdk-11-jre-headless -y
 
 # Install net-tools for ifconfig command
 sudo apt install net-tools && sudo apt install curl
+sudo apt-get install apt-transport-https
 
 #Assign IP address to variable
 ipaddress=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
 
 
 # Import the Elasticsearch GPG key
-wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
 
 # Add the Elasticsearch APT repository
-sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list'
+echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
 
 # Update package index
 sudo apt update
@@ -39,12 +40,14 @@ sudo systemctl enable elasticsearch
 sudo systemctl start elasticsearch
 
 # Wait for Elasticsearch to start
+cls
+echo "Starting elasticsearch, please wait...\n"
 sleep 10
 
 
 
 # Change the default password
-echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "https://$ipaddress:9200"
+sudo echo -e "y\n$password\n$password" | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "https://$ipaddress:9200"
 
 # Install Kibana
 #sudo apt install kibana

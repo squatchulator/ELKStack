@@ -48,7 +48,32 @@ installKibana() {
 }
 startKibana() {
     clear
+    sudo systemctl enable kibana
     sudo systemctl start kibana
+}
+
+installLogstash() {
+    clear
+    sudo apt-get install logstash
+    sudo sed -i "s/#output.elasticsearch: /output.elasticsearch:" /etc/logstash/logstash.yml
+    sudo sed -i "s/#hosts: \["http://localhost:9200"\]/hosts: \["http://localhost:9200"\]" /etc/logstash/logstash.yml
+}
+startLogstash() {
+    clear
+    sudo systemctl enable logstash
+    sudo systemctl start logstash
+}
+installMetricbeat() {
+    sudo apt-get install metricbeat
+    sudo sed -i "s/#setup.kibana:/setup.kibana:" /etc/metricbeat/metricbeat.yml
+    sudo sed -i "s/#host: "localhost:5601"/host: "localhost:5601"" /etc/metricbeat/metricbeat.yml
+    sudo sed -i "s/#output.elasticsearch:/output.elasticsearch:" /etc/metricbeat/metricbeat.yml
+    sudo sed -i "s/#hosts: \["http://localhost:9200"\]/hosts: \["http://localhost:9200"\]" /etc/metricbeat/metricbeat.yml
+}
+startMetricbeat() {
+    clear
+    sudo systemctl enable metricbeat
+    sudo systemctl start metricbeat
 }
 update
 sudo apt install net-tools -y && sudo apt install curl -y
@@ -57,7 +82,10 @@ installElasticsearch
 startElasticsearch
 installKibana
 startKibana
-
+installLogstash
+startLogstash
+installMetricbeat
+startMetricbeat
 
 # ()ncommented kibana lines
 # server.port: 5601

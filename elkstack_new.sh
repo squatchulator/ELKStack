@@ -46,12 +46,10 @@ installationScreen() {
 installElasticsearch() {
     clear
     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
-    package="apt-transport-https"
-    installationScreen "$package"
+    installationScreen "apt-transport-https"
     sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list'
     update
-    package="elasticsearch"
-    installationScreen "$package"
+    installationScreen "elasticsearch"
     sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml
@@ -76,7 +74,7 @@ startElasticsearch() {
 }
 installKibana() {
     clear
-    sudo apt-get install kibana -y
+    installationScreen "kibana"
     clear
     enrollmentToken=$(sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token)
     tmp_file="/tmp/kibana.yml.tmp"
@@ -96,11 +94,14 @@ startKibana() {
     clear
     sudo systemctl enable kibana
     sudo systemctl start kibana
+    clear
+    echo "Starting Kibana..."
+    sleep 5
 }
 
 installLogstash() {
     clear
-    sudo apt-get install logstash
+    installationScreen "logstash"
     sudo sed -i "s/#output.elasticsearch: /output.elasticsearch:" /etc/logstash/logstash.yml
     sudo sed -i "s/#hosts: \["http://localhost:9200"\]/hosts: \["http://localhost:9200"\]" /etc/logstash/logstash.yml
 }
@@ -108,9 +109,12 @@ startLogstash() {
     clear
     sudo systemctl enable logstash
     sudo systemctl start logstash
+    clear
+    echo "Starting Logstash..."
+    sleep 5
 }
 installMetricbeat() {
-    sudo apt-get install metricbeat
+    installationScreen "metricbeat"
     sudo sed -i "s/#setup.kibana:/setup.kibana:" /etc/metricbeat/metricbeat.yml
     sudo sed -i "s/ #host: "localhost:5601"/ host: "localhost:5601"" /etc/metricbeat/metricbeat.yml
     sudo sed -i "s/#output.elasticsearch:/output.elasticsearch:" /etc/metricbeat/metricbeat.yml
@@ -120,9 +124,12 @@ startMetricbeat() {
     clear
     sudo systemctl enable metricbeat
     sudo systemctl start metricbeat
+    clear
+    echo "Starting Metricbeat..."
+    sleep 5
 }
 installFilebeat() {
-    sudo apt-get install filebeat
+    installationScreen "filebeat"
     sudo sed -i "s/ enabled: false/ enabled: true/" /etc/filebeat/filebeat.yml
     sudo sed -i "s/#setup.kibana:/setup.kibana:" /etc/filebeat/filebeat.yml
     sudo sed -i "s/ #host: "localhost:5601"/ host: "localhost:5601"" /etc/filebeat/filebeat.yml
@@ -136,10 +143,13 @@ startFilebeat(){
     clear
     sudo systemctl enable filebeat
     sudo systemctl start filebeat
+    clear
+    echo "Starting Filebeat..."
+    sleep 5
 }
 
 installNginx() {
-    sudo apt-get install nginx -y
+    installationScreen "nginx"
     sudo touch /etc/nginx/conf.d/magento_es_auth.conf
     echo 'server {
       listen 8080;
@@ -153,10 +163,14 @@ startNginx(){
     clear
     sudo systemctl enable nginx
     sudo systemctl start nginx
+    clear
+    echo "Starting Nginx..."
+    sleep 5
 }
 
 update
-sudo apt install net-tools -y && sudo apt install curl -y
+installationScreen "net-tools"
+installationScreen "curl"
 ipaddr=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
 installElasticsearch
 startElasticsearch

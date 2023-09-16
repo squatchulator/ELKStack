@@ -11,31 +11,37 @@ update() {
 }
 installationScreen() {
   clear
-  local chars="/-\|"
-  local i=0
   local package_name="$1"
-  local installed=0
-  exec > >(tee -a "/var/log/installLog.txt") 2>&1
+  local log_file="/var/log/installLog.txt"
   
   if dpkg -l "$package_name" | grep -q "^ii "; then
     echo "Package $package_name is already installed."
     return
   fi
 
-  while [ $installed -eq 0 ]; do
-    local char="${chars:$i:1}"
-    echo -ne "\rInstalling $package_name [$char]"
-    ((i = (i + 1) % 4))
+  (
+    sudo apt-get install "$package_name" -y > "$log_file" 2>&1 &
+    local pid=$!
+    local chars="/-\|"
+    local i=0
 
-    sudo apt-get install "$package_name" -y
-    if [ $? -eq 0 ]; then
-      echo -e "\nPackage $package_name has been successfully installed."
-      installed=1
-    else
+    while ps -p $pid > /dev/null; do
+      local char="${chars:$i:1}"
+      echo -ne "\rInstalling $package_name [$char]"
+      ((i = (i + 1) % 4))
       sleep 0.2
+    done
+
+    wait $pid
+    if dpkg -l "$package_name" | grep -q "^ii "; then
+      echo -e "\nPackage $package_name has been successfully installed."
+    else
+      echo -e "\nFailed to install $package_name. See $log_file for details."
     fi
-  done
+  ) &
+  wait
 }
+
 
 installElasticsearch() {
     clear

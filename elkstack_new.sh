@@ -42,6 +42,8 @@ installKibana() {
     clear
     sudo apt-get install kibana -y
     clear
+    sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token > enrollmentToken
+    sudo sed -i 's/# elasticsearch.serviceAccountToken: "my_token"/ elasticsearch.serviceAccountToken: "'$enrollmentToken'"
     sudo sed -i 's/#server.port: 5601/server.port: 5601/' /etc/kibana/kibana.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#server.host: "localhost"/server.host: "0.0.0.0"/' /etc/kibana/kibana.yml

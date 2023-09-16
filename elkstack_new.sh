@@ -9,15 +9,16 @@ update() {
     sudo apt-get update -y
     sudo apt-get upgrade -y
 }
-installationScren() {
-    installLog
-    PID=$!
-    i=1
-    sp="/-\|"
-    echo -n ' '
-    while [ -d /proc/$PID ]
-    do
-      printf "\b${sp:i++%${#sp}:1}"
+installationScreen () {
+  local chars="/-\|"
+  local i=0
+  exec > >(tee -a "/var/log/installLog.txt") 2>&1
+  while true; do
+    local char="${chars:$i:1}"
+    echo -ne "\rInstalling Elasticsearch [$char]"
+    ((i = (i + 1) % 4))
+    sleep 0.2
+  done
 }
 installElasticsearch() {
     clear

@@ -14,38 +14,38 @@ installationScreen() {
   local chars="/-\|"
   local i=0
   local package_name="$1"
+  local installed=0
   exec > >(tee -a "/var/log/installLog.txt") 2>&1
-  if dpkg -l | grep -q "^ii.*$package_name "; then
+  
+  if dpkg -l "$package_name" | grep -q "^ii "; then
     echo "Package $package_name is already installed."
     return
   fi
-  
-  while true; do
+
+  while [ $installed -eq 0 ]; do
     local char="${chars:$i:1}"
     echo -ne "\rInstalling $package_name [$char]"
     ((i = (i + 1) % 4))
 
-    if dpkg -l | grep -q "^ii.*$package_name "; then
+    sudo apt-get install "$package_name" -y
+    if [ $? -eq 0 ]; then
       echo -e "\nPackage $package_name has been successfully installed."
-      break
+      installed=1
+    else
+      sleep 0.2
     fi
-    
-    sleep 0.2
   done
 }
+
 installElasticsearch() {
     clear
     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
-    package_name="apt-transport-https"
-    installationScreen "$package_name"
-    sudo apt-get install apt-transport-https -y
+    package="apt-transport-https"
+    installationScreen "$package"
     sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list'
-    package_name="updates"
-    installationScreen "$package_name"
     update
-    package_name="Elasticsearch"
-    installationScreen "$package_name"
-    sudo apt-get install elasticsearch -y
+    package="elasticsearch"
+    installationScreen "$package"
     sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml

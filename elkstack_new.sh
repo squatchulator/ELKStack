@@ -10,24 +10,31 @@ update() {
     sudo apt-get upgrade -y
 }
 installationScreen () {
+  clear
   local chars="/-\|"
   local i=0
+  local package_name="$1"
   exec > >(tee -a "/var/log/installLog.txt") 2>&1
   while true; do
     local char="${chars:$i:1}"
-    echo -ne "\rInstalling Elasticsearch [$char]"
+    echo -ne "\rInstalling $package_name [$char]"
     ((i = (i + 1) % 4))
     sleep 0.2
   done
 }
 installElasticsearch() {
+    package_name="apt-transport-https"
+    installationScreen
     clear
     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
     sudo apt-get install apt-transport-https -y
     sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list'
-    update
-    sudo apt-get install elasticsearch -y
+    package_name="updates"
     installationScreen
+    update
+    package_name="Elasticsearch"
+    installationScreen
+    sudo apt-get install elasticsearch -y
     sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml

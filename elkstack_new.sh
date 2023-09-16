@@ -9,16 +9,27 @@ update() {
     sudo apt-get update -y
     sudo apt-get upgrade -y
 }
-installationScreen () {
+installationScreen() {
   clear
   local chars="/-\|"
   local i=0
   local package_name="$1"
   exec > >(tee -a "/var/log/installLog.txt") 2>&1
+  if dpkg -l | grep -q "^ii.*$package_name "; then
+    echo "Package $package_name is already installed."
+    return
+  fi
+  
   while true; do
     local char="${chars:$i:1}"
     echo -ne "\rInstalling $package_name [$char]"
     ((i = (i + 1) % 4))
+
+    if dpkg -l | grep -q "^ii.*$package_name "; then
+      echo -e "\nPackage $package_name has been successfully installed."
+      break
+    fi
+    
     sleep 0.2
   done
 }

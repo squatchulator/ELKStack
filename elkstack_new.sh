@@ -2,6 +2,8 @@
 
 read -p "Node name: " node
 read -p "Do you want to set your stack to use a loopback address? (Recommended for single node) (y/n): " isLoopback
+sed "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+
 update() {
     sudo apt-get update -y
     sudo apt-get upgrade -y

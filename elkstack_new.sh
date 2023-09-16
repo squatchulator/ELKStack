@@ -66,15 +66,49 @@ startLogstash() {
 installMetricbeat() {
     sudo apt-get install metricbeat
     sudo sed -i "s/#setup.kibana:/setup.kibana:" /etc/metricbeat/metricbeat.yml
-    sudo sed -i "s/#host: "localhost:5601"/host: "localhost:5601"" /etc/metricbeat/metricbeat.yml
+    sudo sed -i "s/ #host: "localhost:5601"/ host: "localhost:5601"" /etc/metricbeat/metricbeat.yml
     sudo sed -i "s/#output.elasticsearch:/output.elasticsearch:" /etc/metricbeat/metricbeat.yml
-    sudo sed -i "s/#hosts: \["http://localhost:9200"\]/hosts: \["http://localhost:9200"\]" /etc/metricbeat/metricbeat.yml
+    sudo sed -i "s/ #hosts: \["localhost:9200"\]/ hosts: \["http://localhost:9200"\]" /etc/metricbeat/metricbeat.yml
 }
 startMetricbeat() {
     clear
     sudo systemctl enable metricbeat
     sudo systemctl start metricbeat
 }
+installFilebeat() {
+    sudo apt-get install filebeat
+    sudo sed -i "s/ enabled: false/ enabled: true/" /etc/filebeat/filebeat.yml
+    sudo sed -i "s/#setup.kibana:/setup.kibana:" /etc/filebeat/filebeat.yml
+    sudo sed -i "s/ #host: "localhost:5601"/ host: "localhost:5601"" /etc/filebeat/filebeat.yml
+    sudo sed -i "s/#output.elasticsearch:/output.elasticsearch:" /etc/filebeat/filebeat.yml
+    sudo sed -i "s/ #hosts: \["localhost:9200"\]/ hosts: \["http://localhost:9200"\]" /etc/filebeat/filebeat.yml
+    sudo sed -i "s/#output.logstash:/output.logstash:" /etc/filebeat/filebeat.yml
+    sudo sed -i "s/ #hosts: \["localhost:5044"\]/ hosts: \["http://localhost:5044"\]" /etc/filebeat/filebeat.yml
+
+}
+startFilebeat(){
+    clear
+    sudo systemctl enable filebeat
+    sudo systemctl start filebeat
+}
+
+installNginx() {
+    sudo apt-get install nginx -y
+    sudo touch /etc/nginx/conf.d/magento_es_auth.conf
+    echo 'server {
+      listen 8080;
+      location /_cluster/health {
+        proxy_pass http://localhost:9200/_cluster/health; #or IP
+  }
+}' > magento_es_auth.conf
+}
+
+startNginx(){
+    clear
+    sudo systemctl enable nginx
+    sudo systemctl start nginx
+}
+
 update
 sudo apt install net-tools -y && sudo apt install curl -y
 ipaddr=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
@@ -86,38 +120,7 @@ installLogstash
 startLogstash
 installMetricbeat
 startMetricbeat
-
-# ()ncommented kibana lines
-# server.port: 5601
-# server.host: loopback or IP ( make if )
-# elasticsearch.hosts: ["http://localhost:9200"] or IP address
-
-# Uncommented logstash lines
-# output.elasticsearch:
-#   hosts: ["http://localhost:9200"] pr IP
-
-# Uncommented metricbeat lines
-# setup.kibana:
-#   host: "localhost:5601" or IP
-# output.elasticsearch:
-#  hosts: ["http://localhost:9200"] or IP
-
-# uncommented filebeat lines
-# enabled: true
-# setup.dashboards.enabled: true
-# setup.kibana:
-#   host: "http://localhost:5601" or IP
-# output.elasticsearch:
-#   hosts: ["http://localhost:9200"]
-# output.logstash:
-#   hosts: ["http://localhost:5044"] or IP
-
-# nginx
-# sudo nano /etc/nginx/conf.d/magento_es_auth.conf
-# paste into file above: 
-#server {
-#  listen 8080;
-#  location /_cluster/health {
-#    proxy_pass http://localhost:9200/_cluster/health; #or IP
-#  }
-#}
+installFilebeat
+startFilebeat
+installNginx
+startNginx

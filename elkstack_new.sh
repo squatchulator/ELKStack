@@ -43,7 +43,7 @@ installKibana() {
         sudo sed -i 's/#elasticsearch.hosts: ["http://localhost:9200"]/elasticsearch.hosts: ["http://localhost:9200"]/' /etc/kibana/kibana.yml
     elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
         sudo sed -i 's/#server.host: "localhost"/server.host: "'$ipaddr'"/' /etc/kibana/kibana.yml
-        sudo sed -i 's/#elasticsearch.hosts: ["http://localhost:9200"]/elasticsearch.hosts: ["http://'$ipaddr':9200"]/' /etc/kibana/kibana.yml
+        sudo sed -i 's/#elasticsearch.hosts: \["http://localhost:9200"\]/elasticsearch.hosts: ["http://'$ipaddr':9200"]/' /etc/kibana/kibana.yml
     fi
 }
 startKibana() {

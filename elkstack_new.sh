@@ -19,10 +19,10 @@ installElasticsearch() {
     update
     sudo apt-get install elasticsearch -y
     sudo sed -i "s/#node.name: node-1/node.name: $node/I" /etc/elasticsearch/elasticsearch.yml
-    if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
+    if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]] then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml
         sudo sed -i 's/#discovery.seed_hosts: ["node-1", "node-2"]/discovery.seed_hosts: ["127.0.0.1"]' /etc/elasticsearch/elasticsearch.yml
-    elif [[ "$isLoopback" == "n" || "$isLoopback" == "N"]]; then
+    elif [[ "$isLoopback" == "n" || "$isLoopback" == "N"]] then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddress"'/' /etc/elasticsearch/elasticsearch.yml
         sudo sed -i 's/#discovery.seed_hosts: ["node-1", "node-2"]/discovery.seed_hosts: ['"$ipaddress"']' /etc/elasticsearch/elasticsearch.yml
     else 

@@ -18,17 +18,17 @@ installElasticsearch() {
     echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
     update
     sudo apt-get install elasticsearch -y
-    sudo sed -i "s/#node.name: node-1/node.name: $node/I" /etc/elasticsearch/elasticsearch.yml
-    if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]] then
+    sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml # Fix sed command
+    if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml
-        sudo sed -i 's/#discovery.seed_hosts: ["node-1", "node-2"]/discovery.seed_hosts: ["127.0.0.1"]' /etc/elasticsearch/elasticsearch.yml
-    elif [[ "$isLoopback" == "n" || "$isLoopback" == "N"]] then
+        sudo sed -i 's/#discovery.seed_hosts: \["node-1", "node-2"\]/discovery.seed_hosts: \["127.0.0.1"\]/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
+    elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddress"'/' /etc/elasticsearch/elasticsearch.yml
-        sudo sed -i 's/#discovery.seed_hosts: ["node-1", "node-2"]/discovery.seed_hosts: ['"$ipaddress"']' /etc/elasticsearch/elasticsearch.yml
-    else 
+        sudo sed -i 's/#discovery.seed_hosts: \["node-1", "node-2"\]/discovery.seed_hosts: \["'"$ipaddress"'\"]/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
+    else
         echo "Invalid input. Please enter y/n."
     fi
-    sudo sed -i 's/xpack.security.enabled: true/xpack.security.enabled: false' /etc/elasticsearch/elasticsearch.yml
+    sudo sed -i 's/xpack.security.enabled: true/xpack.security.enabled: false/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
 }
 startElasticsearch() {
     sudo systemctl enable elasticsearch

@@ -3,12 +3,22 @@
 read -p "Node name: " node
 read -p "Default user password: " password
 read -p "Do you want to set your stack to use a loopback address? (Recommended for single node) (y/n): " isLoopback
+echo "Note: Installation logs saved to /var/log/install/installLog.txt"
 sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
 update() {
     sudo apt-get update -y
     sudo apt-get upgrade -y
 }
-
+installationScren() {
+    installLog
+    PID=$!
+    i=1
+    sp="/-\|"
+    echo -n ' '
+    while [ -d /proc/$PID ]
+    do
+      printf "\b${sp:i++%${#sp}:1}"
+}
 installElasticsearch() {
     clear
     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
@@ -16,6 +26,7 @@ installElasticsearch() {
     sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list'
     update
     sudo apt-get install elasticsearch -y
+    installationScreen
     sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml
@@ -44,7 +55,7 @@ installKibana() {
     clear
     enrollmentToken=$(sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token)
     tmp_file="/tmp/kibana.yml.tmp"
-    sudo sed "s/# elasticsearch.serviceAccountToken: \"my_token\"/ elasticsearch.serviceAccountToken: \"$enrollmentToken\"/" /etc/kibana/kibana.yml > "$tmp_file"
+    sudo sed "s/# elasticsearch.serviceAccountToken: "my_token"/ elasticsearch.serviceAccountToken: \"$enrollmentToken\"/" /etc/kibana/kibana.yml > "$tmp_file"
     sudo mv "$tmp_file" /etc/kibana/kibana.yml
 
     sudo sed -i 's/#server.port: 5601/server.port: 5601/' /etc/kibana/kibana.yml

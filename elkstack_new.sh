@@ -33,10 +33,28 @@ startElasticsearch() {
     echo "Starting Elasticsearch..."
     sleep 10
 }
+installKibana() {
+    clear
+    sudo apt-get install kibana -y
+    sudo sed -i 's/#server.port: 5601/server.port: 5601' /etc/kibana/kibana.yml
+    if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
+        sudo sed -i 's/#server.host: "127.0.0.1"/' /etc/kibana/kibana.yml
+        sudo sed -i 's/#elasticsearch.hosts: ["http://localhost:9200"]' /etc/kibana/kibana.yml
+    elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
+        sudo sed -i 's/#server.host: "127.0.0.1"/' /etc/kibana/kibana.yml
+        sudo sed -i 's/#elasticsearch.hosts: ["http://'$ipaddr':9200"]' /etc/kibana/kibana.yml 
+}
+startKibana() {
+    clear
+    sudo systemctl start kibana
+}
 update
 sudo apt install net-tools -y && sudo apt install curl -y
 ipaddr=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
 installElasticsearch
+startElasticsearch
+installKibana
+startKibana
 
 
 # ()ncommented kibana lines

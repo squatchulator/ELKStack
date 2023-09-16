@@ -52,7 +52,7 @@ installElasticsearch() {
     elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddr"'/' /etc/elasticsearch/elasticsearch.yml
         sudo sed -i 's/#discovery.seed_hosts: \["host1", "host2"\]/discovery.seed_hosts: \["'"$ipaddr"'\"]/' /etc/elasticsearch/elasticsearch.yml
-        echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "http://$ipaddr:9200" > new_password
+        echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "https://$ipaddr:9200" > new_password
     else
         echo "Invalid input. Please enter y/n."
     fi
@@ -88,7 +88,7 @@ startKibana() {
     sudo systemctl start kibana
     clear
     echo "Starting Kibana..."
-    sleep 5
+    sleep 10
 }
 
 installLogstash() {

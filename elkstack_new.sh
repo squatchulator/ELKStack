@@ -7,10 +7,6 @@ update() {
     sudo apt-get upgrade
 }
 
-getIpAddress() {
-    sudo apt install net-tools && sudo apt install curl
-    ipaddr=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
-}
 installElasticsearch() {
     clear
     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
@@ -23,8 +19,8 @@ installElasticsearch() {
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml
         sudo sed -i 's/#discovery.seed_hosts: \["node-1", "node-2"\]/discovery.seed_hosts: \["127.0.0.1"\]/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
     elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
-        sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddress"'/' /etc/elasticsearch/elasticsearch.yml
-        sudo sed -i 's/#discovery.seed_hosts: \["node-1", "node-2"\]/discovery.seed_hosts: \["'"$ipaddress"'\"]/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
+        sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddr"'/' /etc/elasticsearch/elasticsearch.yml
+        sudo sed -i 's/#discovery.seed_hosts: \["node-1", "node-2"\]/discovery.seed_hosts: \["'"$ipaddr"'\"]/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
     else
         echo "Invalid input. Please enter y/n."
     fi
@@ -37,11 +33,10 @@ startElasticsearch() {
     echo "Starting Elasticsearch..."
     sleep 10
 }
-
-update()
-getIpAddress(ipaddr)
-installElasticsearch()
-
+update
+sudo apt install net-tools && sudo apt install curl
+ipaddr=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
+installElasticsearch
 
 
 # ()ncommented kibana lines

@@ -60,7 +60,7 @@ installElasticsearch() {
     
 }
 startElasticsearch() {
-    clearhttps://github.com/squatchulator/ELKStack
+    clear
     sudo systemctl enable elasticsearch
     sudo systemctl start elasticsearch
     clear
@@ -72,10 +72,7 @@ installKibana() {
     installationScreen "kibana"
     clear
     enrollmentToken=$(sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token)
-    tmp_file="/tmp/kibana.yml.tmp"
-    sudo sed "s/# elasticsearch.serviceAccountToken: "my_token"/ elasticsearch.serviceAccountToken: \"$enrollmentToken\"/" /etc/kibana/kibana.yml > "$tmp_file"
-    sudo mv "$tmp_file" /etc/kibana/kibana.yml
-
+    sudo sed -i "s/# elasticsearch.serviceAccountToken: \"my_token\"/elasticsearch.serviceAccountToken: \"$enrollmentToken\"/" /etc/kibana/kibana.yml
     sudo sed -i 's/#server.port: 5601/server.port: 5601/' /etc/kibana/kibana.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#server.host: "localhost"/server.host: "0.0.0.0"/' /etc/kibana/kibana.yml

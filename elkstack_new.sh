@@ -1,6 +1,7 @@
 #!/bin/bash
 
 read -p "Node name: " node
+read -p "Default user password: " password
 read -p "Do you want to set your stack to use a loopback address? (Recommended for single node) (y/n): " isLoopback
 sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
 update() {
@@ -15,17 +16,20 @@ installElasticsearch() {
     sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list'
     update
     sudo apt-get install elasticsearch -y
-    sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml # Fix sed command
+    sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml
-        sudo sed -i 's/#discovery.seed_hosts: \["node-1", "node-2"\]/discovery.seed_hosts: \["127.0.0.1"\]/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
+        sudo sed -i 's/#discovery.seed_hosts: \["host1", "host2"\]/discovery.seed_hosts: \["127.0.0.1"\]/' /etc/elasticsearch/elasticsearch.yml
+        echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "http://127.0.0.1:9200" > new_password
     elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddr"'/' /etc/elasticsearch/elasticsearch.yml
-        sudo sed -i 's/#discovery.seed_hosts: \["node-1", "node-2"\]/discovery.seed_hosts: \["'"$ipaddr"'\"]/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
+        sudo sed -i 's/#discovery.seed_hosts: \["host1", "host2"\]/discovery.seed_hosts: \["'"$ipaddr"'\"]/' /etc/elasticsearch/elasticsearch.yml
+        echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "http://$ipaddr:9200" > new_password
     else
         echo "Invalid input. Please enter y/n."
     fi
-    sudo sed -i 's/xpack.security.enabled: true/xpack.security.enabled: false/' /etc/elasticsearch/elasticsearch.yml # Fix sed command
+    #sudo sed -i 's/xpack.security.enabled: true/xpack.security.enabled: false/' /etc/elasticsearch/elasticsearch.yml
+    
 }
 startElasticsearch() {
     sudo systemctl enable elasticsearch

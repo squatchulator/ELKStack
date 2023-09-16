@@ -36,13 +36,14 @@ startElasticsearch() {
 installKibana() {
     clear
     sudo apt-get install kibana -y
-    sudo sed -i 's/#server.port: 5601/server.port: 5601' /etc/kibana/kibana.yml
+    sudo sed -i 's/#server.port: 5601/server.port: 5601/' /etc/kibana/kibana.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
-        sudo sed -i 's/#server.host: "127.0.0.1"/' /etc/kibana/kibana.yml
-        sudo sed -i 's/#elasticsearch.hosts: ["http://localhost:9200"]' /etc/kibana/kibana.yml
+        sudo sed -i 's/#server.host: "127.0.0.1"/server.host: "127.0.0.1"/' /etc/kibana/kibana.yml
+        sudo sed -i 's/#elasticsearch.hosts: ["http://localhost:9200"]/elasticsearch.hosts: ["http://localhost:9200"]/' /etc/kibana/kibana.yml
     elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
-        sudo sed -i 's/#server.host: "127.0.0.1"/' /etc/kibana/kibana.yml
-        sudo sed -i 's/#elasticsearch.hosts: ["http://'$ipaddr':9200"]' /etc/kibana/kibana.yml 
+        sudo sed -i 's/#server.host: "localhost"/server.host: "'$ipaddr'"/' /etc/kibana/kibana.yml
+        sudo sed -i 's/#elasticsearch.hosts: ["http://'$ipaddr':9200"]/elasticsearch.hosts: ["http://'$ipaddr':9200"]/' /etc/kibana/kibana.yml
+    fi
 }
 startKibana() {
     clear

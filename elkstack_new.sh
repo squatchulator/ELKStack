@@ -3,8 +3,8 @@
 read -p "Node name: " node
 read -p "Do you want to set your stack to use a loopback address? (Recommended for single node) (y/n): " isLoopback
 update() {
-    sudo apt-get update
-    sudo apt-get upgrade
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
 }
 
 installElasticsearch() {
@@ -34,7 +34,7 @@ startElasticsearch() {
     sleep 10
 }
 update
-sudo apt install net-tools && sudo apt install curl
+sudo apt install net-tools -y && sudo apt install curl -y
 ipaddr=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
 installElasticsearch
 

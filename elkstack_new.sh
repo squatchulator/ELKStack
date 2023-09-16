@@ -71,7 +71,7 @@ installKibana() {
     clear
     installationScreen "kibana"
     clear
-    enrollmentToken=$(sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token)
+    enrollmentToken=$(sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token 2>&1)
     sudo sed -i "s/# elasticsearch.serviceAccountToken: \"my_token\"/elasticsearch.serviceAccountToken: \"$enrollmentToken\"/" /etc/kibana/kibana.yml
     sudo sed -i 's/#server.port: 5601/server.port: 5601/' /etc/kibana/kibana.yml
     if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then

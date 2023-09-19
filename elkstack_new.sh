@@ -9,8 +9,8 @@ log_file="/var/log/installLog.txt"
 update() {
     echo "$(tput setaf 1) ----Updating system----"
     sudo timedatectl set-timezone America/New_York
-    sudo apt-get update -y > "$log_file" 2>&1 &
-    sudo apt-get upgrade -y > "$log_file" 2>&1 &
+    sudo apt-get update -y > &> /dev/null
+    sudo apt-get upgrade -y > &> /dev/null
 }
 installationScreen() {
   clear

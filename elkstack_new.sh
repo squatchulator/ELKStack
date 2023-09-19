@@ -9,8 +9,10 @@ log_file="/var/log/installLog.txt"
 update() {
     echo "$(tput setaf 1) ----Updating system----"
     sudo timedatectl set-timezone America/New_York
-    sudo apt-get update -y > &> /dev/null
-    sudo apt-get upgrade -y > &> /dev/null
+    sudo apt-get update -y 
+    sudo apt-get upgrade -y 
+    echo "$(tput setaf 7)"
+
 }
 installationScreen() {
   clear
@@ -178,6 +180,7 @@ startNginx(){
     clear
     echo "$(tput setaf 1) ----Starting Nginx----"
     sleep 5
+    echo "$(tput setaf 7)"
 }
 
 update

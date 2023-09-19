@@ -1,7 +1,7 @@
 #!/bin/bash
 
 read -p "Node name: " node
-read -p "Default user password: " password
+#read -p "Default user password: " password
 read -p "Do you want to set your stack to use a loopback address? (Recommended for single node) (y/n): " isLoopback
 echo "Note: Installation logs saved to /var/log/install/installLog.txt"
 sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf

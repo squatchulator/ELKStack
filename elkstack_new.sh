@@ -5,17 +5,17 @@ read -p "Node name: " node
 read -p "Do you want to set your stack to use a loopback address? (Recommended for single node) (y/n): " isLoopback
 echo "Note: Installation logs saved to /var/log/install/installLog.txt"
 sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+log_file="/var/log/installLog.txt"
 update() {
     echo "$(tput setaf 1) ----Updating system----"
     sudo timedatectl set-timezone America/New_York
-    sudo apt-get update -y
-    sudo apt-get upgrade -y
+    sudo apt-get update -y > "$log_file" 2>&1 &
+    sudo apt-get upgrade -y > "$log_file" 2>&1 &
 }
 installationScreen() {
   clear
   echo "$(tput setaf 1) ----Installing $1----"
   local package_name="$1"
-  local log_file="/var/log/installLog.txt"
   sudo apt-get install "$package_name" -y > "$log_file" 2>&1 &
   local chars="/-\|"
   local i=0

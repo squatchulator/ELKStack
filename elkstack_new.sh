@@ -6,17 +6,16 @@ read -p "Do you want to set your stack to use a loopback address? (Recommended f
 echo "Note: Installation logs saved to /var/log/install/installLog.txt"
 sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
 update() {
+    echo "$(tput setaf 1) ----Updating system----"
+    sudo timedatectl set-timezone America/New_York
     sudo apt-get update -y
     sudo apt-get upgrade -y
 }
 installationScreen() {
   clear
+  echo "$(tput setaf 1) ----Installing $1----"
   local package_name="$1"
   local log_file="/var/log/installLog.txt"
-  if dpkg -l "$package_name" | grep -q "^ii "; then
-    echo "Package $package_name is already installed."
-    return
-  fi
   sudo apt-get install "$package_name" -y > "$log_file" 2>&1 &
   local chars="/-\|"
   local i=0
@@ -28,11 +27,6 @@ installationScreen() {
     sleep 0.2
   done
   wait $pid
-  if dpkg -l "$package_name" | grep -q "^ii "; then
-    echo -e "\nPackage $package_name has been successfully installed."
-  else
-    echo -e "\nFailed to install $package_name. See $log_file for details."
-  fi
 }
 
 
@@ -45,18 +39,18 @@ installElasticsearch() {
     clear
     installationScreen "elasticsearch"
     sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml
-    if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
+#    if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml
         sudo sed -i 's/#discovery.seed_hosts: \["host1", "host2"\]/discovery.seed_hosts: \["127.0.0.1"\]/' /etc/elasticsearch/elasticsearch.yml
-        echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "http://127.0.0.1:9200" > new_password
-    elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
-        sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddr"'/' /etc/elasticsearch/elasticsearch.yml
-        sudo sed -i 's/#discovery.seed_hosts: \["host1", "host2"\]/discovery.seed_hosts: \["'"$ipaddr"'\"]/' /etc/elasticsearch/elasticsearch.yml
-        echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "https://$ipaddr:9200" > new_password
-    else
-        echo "Invalid input. Please enter y/n."
-    fi
-    #sudo sed -i 's/xpack.security.enabled: true/xpack.security.enabled: false/' /etc/elasticsearch/elasticsearch.yml
+#        echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "http://127.0.0.1:9200" > new_password
+#    elif [[ "$isLoopback" == "n" || "$isLoopback" == "N" ]]; then
+#        sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"$ipaddr"'/' /etc/elasticsearch/elasticsearch.yml
+#        sudo sed -i 's/#discovery.seed_hosts: \["host1", "host2"\]/discovery.seed_hosts: \["'"$ipaddr"'\"]/' /etc/elasticsearch/elasticsearch.yml
+#        echo -e "y\n$password\n$password" | /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u elastic -url "https://$ipaddr:9200" > new_password
+#    else
+#        echo "Invalid input. Please enter y/n."
+#    fi
+    sudo sed -i 's/xpack.security.enabled: true/xpack.security.enabled: false/' /etc/elasticsearch/elasticsearch.yml
     
 }
 startElasticsearch() {
@@ -64,7 +58,7 @@ startElasticsearch() {
     sudo systemctl enable elasticsearch
     sudo systemctl start elasticsearch
     clear
-    echo "Starting Elasticsearch..."
+    echo "$(tput setaf 1) ----Starting Elasticsearch----"
     sleep 10
 }
 installKibana() {
@@ -87,13 +81,14 @@ startKibana() {
     sudo systemctl enable kibana
     sudo systemctl start kibana
     clear
-    echo "Starting Kibana..."
+    echo "$(tput setaf 1) ----Starting Kibana----"
     sleep 10
 }
 
 installLogstash() {
     clear
     installationScreen "logstash"
+    clear
     sudo sed -i "s/#output.elasticsearch: /output.elasticsearch:" /etc/logstash/logstash.yml
     sudo sed -i "s/#hosts: \["http://localhost:9200"\]/hosts: \["http://localhost:9200"\]" /etc/logstash/logstash.yml
 }
@@ -102,11 +97,13 @@ startLogstash() {
     sudo systemctl enable logstash
     sudo systemctl start logstash
     clear
-    echo "Starting Logstash..."
+    echo "$(tput setaf 1) ----Starting Logstash----"
     sleep 5
 }
 installMetricbeat() {
+    clear
     installationScreen "metricbeat"
+    clear
     sudo sed -i "s/#setup.kibana:/setup.kibana:" /etc/metricbeat/metricbeat.yml
     sudo sed -i "s/ #host: "localhost:5601"/ host: "localhost:5601"" /etc/metricbeat/metricbeat.yml
     sudo sed -i "s/#output.elasticsearch:/output.elasticsearch:" /etc/metricbeat/metricbeat.yml
@@ -116,12 +113,33 @@ startMetricbeat() {
     clear
     sudo systemctl enable metricbeat
     sudo systemctl start metricbeat
+    sudo metricbeat modules enable system
+    sudo metricbeat modules enable kibana
+    sudo metricbeat modules enable elasticsearch
+    sudo metricbeat modules enable logstash
+    sudo metricbeat setup -e
+    sudo metricbeat setup --dashboards
+    sudo metricbeat setup --index-management
+    sudo metricbeat setup --pipelines
     clear
-    echo "Starting Metricbeat..."
+    echo "$(tput setaf 1) ----Starting Metricbeat----"
     sleep 5
 }
 installFilebeat() {
+    clear
     installationScreen "filebeat"
+    clear
+    sudo filebeat modules enable system
+    sudo filebeat modules enable cisco
+    sudo filebeat modules enable netflow
+    sudo filebeat modules enable osquery
+    sudo filebeat modules enable elasticsearch
+    sudo filebeat modules enable kibana
+    sudo filebeat modules enable logstash
+    sudo filebeat setup -e
+    sudo filebeat setup --dashboards
+    sudo filebeat setup --index-management
+    sudo filebeat setup --pipelines
     sudo sed -i "s/ enabled: false/ enabled: true/" /etc/filebeat/filebeat.yml
     sudo sed -i "s/#setup.kibana:/setup.kibana:" /etc/filebeat/filebeat.yml
     sudo sed -i "s/ #host: "localhost:5601"/ host: "localhost:5601"" /etc/filebeat/filebeat.yml
@@ -136,12 +154,14 @@ startFilebeat(){
     sudo systemctl enable filebeat
     sudo systemctl start filebeat
     clear
-    echo "Starting Filebeat..."
+    echo "$(tput setaf 1) ----Starting Filebeat----"
     sleep 5
 }
 
 installNginx() {
+    clear
     installationScreen "nginx"
+    clear
     sudo touch /etc/nginx/conf.d/magento_es_auth.conf
     echo 'server {
       listen 8080;
@@ -156,14 +176,14 @@ startNginx(){
     sudo systemctl enable nginx
     sudo systemctl start nginx
     clear
-    echo "Starting Nginx..."
+    echo "$(tput setaf 1) ----Starting Nginx----"
     sleep 5
 }
 
 update
 installationScreen "net-tools"
 installationScreen "curl"
-ipaddr=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
+#ipaddr=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | awk '{print $NF; exit}')
 installElasticsearch
 startElasticsearch
 installKibana

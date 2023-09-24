@@ -40,6 +40,7 @@ installElasticsearch() {
     update
     clear
     installationScreen "elasticsearch"
+    #export ELASTIC_PASSWORD="password"
     sudo sed -i "s/#node.name: node-1/node.name: $node/" /etc/elasticsearch/elasticsearch.yml
 #    if [[ "$isLoopback" == "y" || "$isLoopback" == "Y" ]]; then
         sudo sed -i 's/#network.host: 192.168.0.1/network.host: '"0.0.0.0"'/' /etc/elasticsearch/elasticsearch.yml
